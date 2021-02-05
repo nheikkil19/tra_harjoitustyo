@@ -13,25 +13,30 @@ from mylib import *
 if __name__ == "__main__":
     
     # Tiedoston luku
-    filename = "graafi.txt"
-    with open(filename) as f:
-        ctr = 0
-        while ctr != -1:
-            for row in f:
-                row_list = row.rstrip("\n").split(" ")
-                row_list = [int(i) for i in row_list]
-                if ctr == 0:
-                    cities, roads = row_list[0], row_list[1]
-                    g = Graph(cities)
-                    ctr += 1
-                elif ctr == roads + 1:
-                    dest = row_list[0]
-                    ctr = -1
-                else:
-                    add_edge(g, row_list[0], row_list[1], row_list[2])
-                    ctr += 1
+    # filename = "graafi.txt"
+    # with open(filename) as f:
+    #     ctr = 0
+    #     while ctr != -1:
+    #         for row in f:
+    #             row_list = row.rstrip("\n").split(" ")
+    #             row_list = [int(i) for i in row_list]
+    #             if ctr == 0:
+    #                 cities, roads = row_list[0], row_list[1]
+    #                 g = Graph(cities)
+    #                 ctr += 1
+    #             elif ctr == roads + 1:
+    #                 dest = row_list[0]
+    #                 ctr = -1
+    #             else:
+    #                 add_edge(g, row_list[0], row_list[1], row_list[2])
+    #                 ctr += 1
 
 
-    dijkstra(g, 1, dest)
+    # dijkstra(g, 1, dest)
 
-    print(g.pred)
+    # print(g.pred)
+
+    li = [3, 7, 11, 5, 2, 18, 100, 1]
+    print(li)
+    min_heap(li)
+    print(li)
