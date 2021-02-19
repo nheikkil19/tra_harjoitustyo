@@ -1,6 +1,6 @@
 # Kirjasto harjoitustyön funktioille
 
-from math import log2
+from math import floor
 
 INF = float("inf")
 WHITE = 0
@@ -81,55 +81,44 @@ def dijkstra(graph, start, end):
             # Käydään läpi kaikki välit, joita ei olla käyty = merkattu mustaksi
             if colors[edge.node] == WHITE:
                 # Lisätään kohdekaupunki listaan, jos se ei ole siellä vielä.
-                if not edge.node in Q:
-                    Q.append(edge.node)
+                if not edge in Q:
+                    heap_insert(Q, edge)
+                    # Q.append(edge.node)
                 # Päivitetään korkeus pienemmäksi, jos löytyy mahdollinen reitti
                 if edge.weight < graph.height[edge.node]:
                     graph.height[edge.node] = edge.weight 
                 graph.pred[edge.node] = lowest
             edge = edge.next
         colors[lowest] = BLACK          # Merkataan kaupunki käydyksi
-        lowest = extract_min(graph, Q)  # Otetaan matalin reitti jonosta
+        lowest = Q.pop(0).node                   # Otetaan matalin reitti jonosta
         edge = graph.adjList[lowest]
 
-
-def extract_min(graph, li):
-    """Hakee listasta kaupungin, johon reitin korkeus on matalin. Palauttaa kaupungin numeron.
-    """
-    minheight = INF
-    for e in li:
-        if graph.height[e] < minheight:
-            minheight = graph.height[e]
-            min = e
-
-    list.remove(min)
-    return min
 
 def min_heap(li):
     """Rakentaa minimikeon annetusta listasta.
     """
-    halfway = int(len(li) / 2) - 1
+    halfway = get_parent(len(li) - 1)
     for i in range(halfway, -1, -1):
         min_heapify(li, i)
 
 def min_heapify(li, i):
-    """ Tähän jotain
+    """ Järjestelee kekoa annetusta juuresta
     """
     left = 2 * i + 1
     right = 2 * i + 2
     smallest = i
 
     if right < len(li):             # Tarkastetaan, onko oikeanpuoleista lasta
-        if li[left] < li[right]:
-            if li[left] < li[i]:
+        if li[left].weight < li[right].weight:
+            if li[left].weight < li[i].weight:
                 smallest = left
 
         else:
-            if li[right] < li[i]:
+            if li[right].weight < li[i].weight:
                 smallest = right    
     
     elif left < len(li):
-        if li[left] < li[i]:
+        if li[left].weight < li[i].weight:
                 smallest = left
     
     if smallest != i:
@@ -143,3 +132,41 @@ def switch(li, x, y):
     temp = li[x]
     li[x] = li[y]
     li[y] = temp
+
+def heap_insert(li, x):
+    """Lisää kekoon alkion
+    """
+    li.append(x)
+    
+    # Järjestele juuret alhaalta
+    parent = get_parent(len(li) - 1)
+    while parent != -1:
+        min_heapify(li, parent)
+        parent = get_parent(parent)
+
+def extract_min(li):
+    """Hakee listasta kaupungin, johon reitin korkeus on matalin. Palauttaa kaupungin numeron.
+    """
+    minweight = INF
+    for e in li:
+        if e.weight < minweight:
+            minweight = e.weight
+            min = e
+
+    li.remove(min)
+    return min
+
+def extract_min_heap(li):
+    """ Poistaa ja palauttaa minimin keosta
+    """
+    switch(li, 0, len(li) - 1)
+    min = li.pop()
+    min_heapify(li, 0)
+
+    return min.node
+
+def get_parent(x):
+    """ Antaa annetun indeksin vanhemman.
+    """
+    assert x >= 0
+    return floor(((x + 1) / 2) - 1)
