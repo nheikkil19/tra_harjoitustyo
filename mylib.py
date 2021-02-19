@@ -1,5 +1,17 @@
 # Kirjasto harjoitustyön funktioille
 
+# TODO:
+# ASSERTIT
+# PARANTAA DOKUMENTAATIOTA
+# PRIORITEETTIJONO KUNTOON
+#   - KUMPI TAPA ON PAREMPI
+# FORMATOIDA KOODIA
+# KIRJOTTAA ANALYYSI
+# JÄRJESTELLÄ FUNKTIOT OIKEIN
+# GRAAFIN LUKU MAIN TIEDOSTOSSA
+# MIKÄ ALGORITMI, DIJIKSJTRA VAI LEVEYSHAKU
+# TULOSTAA PARHAAN REITIN TAI ETTEI REITTIÄ OLE
+
 from math import floor
 
 INF = float("inf")
@@ -17,40 +29,36 @@ class Edge:
 class Graph:
     def __init__(self, nV):
         self.nVert = nV
-        self.adjList = {}
+        self.edgeList = {}
         self.vertices = []
-        for i in range(1, self.nVert + 1):
-            self.adjList[i] = None
-            self.vertices.append(i)
-        
-        # Kertoo matalimman reitin korkeuden kyseiseen solmuun eli kaupunkiin. 
-        # Alustetaan äärettömäksi, koska etsitään matalinta.
-        self.height = {}
-        for i in range(1, self.nVert + 1):
-            self.height[i] = INF
-        
-        # Kertoo solmujen edeltäjän.
-        self.pred = {}
-        for i in range(1, self.nVert + 1):
-            self.pred[i] = None
+        self.height = {}        # Kertoo matalimman reitin korkeuden kyseiseen kaupunkiin. 
+        self.pred = {}          # Kertoo solmujen edeltäjän.
+        self.colors = {}
 
+        for i in range(1, self.nVert + 1):
+            self.edgeList[i] = None
+            self.vertices.append(i)
+            # Alustetaan äärettömäksi, koska etsitään matalinta.
+            self.height[i] = INF        
+            self.pred[i] = None
+            self.colors[i] = WHITE
 
 def add_edge(graph, x, y, weight):
-    """ Lisää viivan x: ja y:n välille painolla weight
+    """ Lisää viivan x:n ja y:n välille painolla weight
     """
     # Lisätään reitti
-    ed = graph.adjList[x]
+    ed = graph.edgeList[x]
     if ed == None:
-        graph.adjList[x] = Edge(y, weight)
+        graph.edgeList[x] = Edge(y, weight)
     else:
         while ed.next != None:
             ed = ed.next
         ed.next = Edge(y, weight)
 
     # Lisätään myös toiseen suuntaan, koska suuntaamaton graafi.
-    ed = graph.adjList[y]
+    ed = graph.edgeList[y]
     if ed == None:
-        graph.adjList[y] = Edge(x, weight)
+        graph.edgeList[y] = Edge(x, weight)
     else:
         while ed.next != None:
             ed = ed.next
@@ -59,7 +67,7 @@ def add_edge(graph, x, y, weight):
 def print_edges(graph, x):
     """Tulostaa reunat tietystä pisteestä
     """
-    y = graph.adjList[x]
+    y = graph.edgeList[x]
     while y != None:
         print("EDGE:  ", x, "--", y.weight, "--", y.node)
         y = y.next
@@ -67,19 +75,19 @@ def print_edges(graph, x):
 def dijkstra(graph, start, end):
     
     # Alustetaan värit valkoiseksi
-    colors = {}
     for v in graph.vertices:
-        colors[v] = WHITE
+        graph.colors[v] = WHITE
 
+    # Prioriteettijono perustuu listaan
     Q = []
 
     lowest = start
-    edge = graph.adjList[lowest]
+    edge = graph.edgeList[lowest]
     while lowest != end:
 
         while edge != None:
             # Käydään läpi kaikki välit, joita ei olla käyty = merkattu mustaksi
-            if colors[edge.node] == WHITE:
+            if graph.colors[edge.node] == WHITE:
                 # Lisätään kohdekaupunki listaan, jos se ei ole siellä vielä.
                 if not edge in Q:
                     heap_insert(Q, edge)
@@ -89,9 +97,9 @@ def dijkstra(graph, start, end):
                     graph.height[edge.node] = edge.weight 
                 graph.pred[edge.node] = lowest
             edge = edge.next
-        colors[lowest] = BLACK          # Merkataan kaupunki käydyksi
+        graph.colors[lowest] = BLACK          # Merkataan kaupunki käydyksi
         lowest = Q.pop(0).node                   # Otetaan matalin reitti jonosta
-        edge = graph.adjList[lowest]
+        edge = graph.edgeList[lowest]
 
 
 def min_heap(li):
