@@ -12,7 +12,7 @@ from mylib import *
 if __name__ == "__main__":
     
     # Tiedoston luku
-    filename = "graafi.txt"
+    filename = "graafi2.txt"
     with open(filename) as f:
         ctr = 0
         while ctr != -1:
@@ -27,7 +27,7 @@ if __name__ == "__main__":
                     dest = row_list[0]
                     ctr = -1
                 else:
-                    add_edge(g, row_list[0], row_list[1], row_list[2])
+                    g.add_edge(row_list[0], row_list[1], row_list[2])
                     ctr += 1
 
 
