@@ -16,7 +16,8 @@ from math import floor
 
 INF = float("inf")
 WHITE = 0
-BLACK = 1
+GREY = 1
+BLACK = 2
 
 
 class Edge:
@@ -72,34 +73,42 @@ def print_edges(graph, x):
         print("EDGE:  ", x, "--", y.weight, "--", y.node)
         y = y.next
 
-def dijkstra(graph, start, end):
-    
+def find_route(graph, start, end):
+    """ Etsii leveyshaun avulla reitin start-nodesta end-nodeen
+    """
+
     # Alustetaan värit valkoiseksi
     for v in graph.vertices:
         graph.colors[v] = WHITE
 
     # Prioriteettijono perustuu listaan
-    Q = []
+    priority_Q = []
 
     lowest = start
-    edge = graph.edgeList[lowest]
+    
     while lowest != end:
 
-        while edge != None:
-            # Käydään läpi kaikki välit, joita ei olla käyty = merkattu mustaksi
-            if graph.colors[edge.node] == WHITE:
-                # Lisätään kohdekaupunki listaan, jos se ei ole siellä vielä.
-                if not edge in Q:
-                    heap_insert(Q, edge)
-                    # Q.append(edge.node)
-                # Päivitetään korkeus pienemmäksi, jos löytyy mahdollinen reitti
-                if edge.weight < graph.height[edge.node]:
-                    graph.height[edge.node] = edge.weight 
-                graph.pred[edge.node] = lowest
-            edge = edge.next
-        graph.colors[lowest] = BLACK          # Merkataan kaupunki käydyksi
-        lowest = Q.pop(0).node                   # Otetaan matalin reitti jonosta
         edge = graph.edgeList[lowest]
+
+        while edge != None:
+            # Käydään läpi kaikki välit, joita ei olla löydetty
+            if graph.colors[edge.node] != BLACK:
+                if graph.colors[edge.node] == WHITE:
+                    # Lisätään kohdekaupunki prioriteettijonoon
+                    heap_insert(priority_Q, edge)
+                    # priority_Q.append(edge.node)
+                    graph.colors[edge.node] = GREY  # Merkataan kaupunki löydetyksi
+                
+                # Päivitetään korkeus pienemmäksi, jos löytyy mahdollinen reitti
+                if graph.height[lowest] < graph.height[edge.node] and edge.weight < graph.height[edge.node]:
+                    graph.height[edge.node] = edge.weight
+                    graph.pred[edge.node] = lowest
+            edge = edge.next
+        
+        graph.colors[lowest] = BLACK            # Merkataan kaupunki tutkituksi
+        lowest = priority_Q.pop(0).node         # Otetaan matalin reitti jonosta
+        
+
 
 
 def min_heap(li):

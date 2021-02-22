@@ -9,7 +9,6 @@
 from mylib import *
 
 
-
 if __name__ == "__main__":
     
     # Tiedoston luku
@@ -32,7 +31,7 @@ if __name__ == "__main__":
                     ctr += 1
 
 
-    dijkstra(g, 1, dest)
+    find_route(g, 1, dest)
 
     
     print(g.pred)
