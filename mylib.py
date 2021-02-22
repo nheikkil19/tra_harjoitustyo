@@ -16,14 +16,14 @@ from math import floor
 
 INF = float("inf")
 WHITE = 0
-GREY = 1
-BLACK = 2
+BLACK = 1
 
 
 class Edge:
     def __init__(self, node, weight):
         self.node = node        # mihin solmuun viivaa pitkin päästään
         self.weight = weight    # viivan paino eli tien korkeus
+        self.color = WHITE
         self.next = None 
 
 
@@ -93,16 +93,13 @@ def find_route(graph, start, end):
         while edge != None:
             # Käydään läpi kaikki välit, joita ei olla löydetty
             if graph.colors[edge.node] != BLACK:
-                if graph.colors[edge.node] == WHITE:
-                    # Lisätään kohdekaupunki prioriteettijonoon
+
+                if edge.color != BLACK:
                     heap_insert(priority_Q, edge)
                     # priority_Q.append(edge.node)
-                    graph.colors[edge.node] = GREY  # Merkataan kaupunki löydetyksi
-                
-                # Päivitetään korkeus pienemmäksi, jos löytyy mahdollinen reitti
-                if graph.height[lowest] < graph.height[edge.node] and edge.weight < graph.height[edge.node]:
-                    graph.height[edge.node] = edge.weight
-                    graph.pred[edge.node] = lowest
+                    edge.color = BLACK          # Merkataan väli lisätyksi prioriteettijonoon
+
+                graph.pred[edge.node] = lowest  # Tallennetaan reitti kaupunkiin
             edge = edge.next
         
         graph.colors[lowest] = BLACK            # Merkataan kaupunki tutkituksi
@@ -187,3 +184,5 @@ def get_parent(x):
     """
     assert x >= 0
     return floor(((x + 1) / 2) - 1)
+
+# def print_route(start, end):
