@@ -24,7 +24,6 @@ class Edge:
     def __init__(self, node, weight):
         self.node = node        # mihin solmuun viivaa pitkin päästään
         self.weight = weight    # viivan paino eli tien korkeus
-        self.color = WHITE
         self.next = None 
 
 
@@ -137,21 +136,27 @@ class minHeap:
         return min["key"]
 
 
+    def lower_priority(self, x, prior):
+        """ Laskee alkion prioriteettiä
+        """
+        for i, data in enumerate(self.list):
+            if data["key"] == x:
+                data["prior"] = prior
+
+                # Järjestää keon uudestaan
+                parent = get_parent(i)
+                while parent != -1:
+                    self.min_heapify(parent)
+                    parent = get_parent(parent)
+
+                break
+
+
 def get_parent(x):
     """ Antaa annetun indeksin vanhemman.
     """
     assert x >= 0
     return floor(((x + 1) / 2) - 1)
-
-
-def print_edges(graph, x):
-    """Tulostaa reunat tietystä pisteestä
-    """
-    y = graph.edgeList[x]
-    while y != None:
-        print("EDGE:  ", x, "--", y.weight, "--", y.node)
-        y = y.next
-
 
 
 def find_route(graph, start, end):
@@ -176,30 +181,27 @@ def find_route(graph, start, end):
             # Käydään läpi kaikki välit, joita ei olla löydetty
             if graph.colors[edge.node] != BLACK:
                 
-                if graph.colors[edge.node] == WHITE:
-                    # Katsotaan nouseeko reitin maksimikorkeus, kun väli kuljetaan.
-                    if graph.height[lowest] > edge.weight:
-                        higher = graph.height[lowest]
-                    else:
-                        higher = edge.weight
-                    
-                    # Tutkitaan, onko uusi reitti matalampi
-                    if higher < graph.height[edge.node]:
-                        graph.height[edge.node] = higher
-
-                        # Tallennetaan reitti kaupunkiin
-                        graph.pred[edge.node] = lowest
-
-                    # Lisätään kohdekaupunki tutkittavien listaan
-                    priority_Q.insert(edge.node, graph.height[edge.node])
-                    # priority_Q.append(edge.node)
-                    # Merkataan kohde löydetyksi
-                    graph.colors[edge.node] = GRAY
+                # Katsotaan nouseeko reitin maksimikorkeus, kun väli kuljetaan.
+                new_height = max(graph.height[lowest], edge.weight)
                 
-                else: 
-                    # FIND FROM HEAP WITH KEY
-                    # CHECK THE PRIORITY
-                    # IF NEW IS LOWER, CHANGE AND ARRANGE
+                # Tutkitaan, onko uusi reitti matalampi
+                if new_height < graph.height[edge.node]:
+                    graph.height[edge.node] = new_height
+
+                    # Tallennetaan reitti kaupunkiin
+                    graph.pred[edge.node] = lowest
+
+                    if graph.colors[edge.node] == GRAY:
+                        # Lasketaan reitin korkeutta prioriteettijonossa
+                        priority_Q.lower_priority(edge.node, new_height)
+                    
+                    else:
+                        # Lisätään kohdekaupunki tutkittavien listaan
+                        priority_Q.insert(edge.node, graph.height[edge.node])
+                        # priority_Q.append(edge.node)
+                        # Merkataan kohde löydetyksi
+                        graph.colors[edge.node] = GRAY
+ 
             
             # Valitaan seuraava väli
             edge = edge.next
@@ -225,16 +227,25 @@ def extract_min(li):
 def print_route(graph, start, end):
     """ Tulostaa reitin start-nodesta end-nodeen. 
     """
-
-    route = [end]
-    pred = graph.pred[end]
-    while pred != None:
-        route.append(pred)
-        pred = graph.pred[pred]
-    
+    # Tekee reitistä listan alkaen lopusta
+    route = []
+    node = end
     maxHeight = -INF
+    while node != None:
+        route.append(node)
+        maxHeight = max(graph.height[node], maxHeight)
+        node = graph.pred[node]
+    
     print("Reitti kaupungista {} kaupunkiin {}:".format(start, end))
     for i in range(len(route) - 1, 0, -1):
-        print("{}--{}".format(i, i - 1))
-        if maxHeight < graph.edgeList:
-            print("Reitin suurin korkeus: {}".format(maxHeight))
+        print("{}--{}".format(route[i], route[i - 1]))
+    
+    print("Reitin suurin korkeus: {}".format(maxHeight))
+
+def print_edges(graph, x):
+    """Tulostaa reunat tietystä pisteestä
+    """
+    y = graph.edgeList[x]
+    while y != None:
+        print("EDGE:  ", x, "--", y.weight, "--", y.node)
+        y = y.next
