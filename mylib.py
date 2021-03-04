@@ -2,15 +2,8 @@
 
 # TODO:
 # ASSERTIT
-# PARANTAA DOKUMENTAATIOTA
-# PRIORITEETTIJONO KUNTOON
-#   - KUMPI TAPA ON PAREMPI
-# FORMATOIDA KOODIA
 # KIRJOTTAA ANALYYSI
-# JÄRJESTELLÄ FUNKTIOT OIKEIN
-# GRAAFIN LUKU MAIN TIEDOSTOSSA
-# MIKÄ ALGORITMI, DIJIKSJTRA VAI LEVEYSHAKU
-# TULOSTAA PARHAAN REITIN TAI ETTEI REITTIÄ OLE
+# PARANTAA REITIN TULOSTUSTA
 
 from math import floor
 
@@ -18,16 +11,15 @@ INF = float("inf")
 
 class Edge:
     def __init__(self, node, weight):
-        self.node = node        # mihin solmuun viivaa pitkin päästään
-        self.weight = weight    # viivan paino eli tien korkeus
-
+        self.node = node        # Mihin solmuun viiva menee
+        self.weight = weight
 
 class Graph:
     def __init__(self, nV):
         self.nVert = nV
         self.edgeList = {}
         self.height = {}        # Kertoo matalimman reitin korkeuden kyseiseen kaupunkiin. 
-        self.pred = {}          # Kertoo solmujen edeltäjän.
+        self.pred = {}
         self.vertices = []
 
         for i in range(1, self.nVert + 1):
@@ -42,32 +34,31 @@ class Graph:
         """
         # Lisätään reitti
         self.edgeList[x].append(Edge(y, weight))
-
         # Lisätään myös toiseen suuntaan, koska suuntaamaton graafi.
         self.edgeList[y].append(Edge(x, weight))
 
 class minHeap:
-    def __init__(self, li=[], priors={}):
-        assert len(li) == len(priors)
-        self.list = li
+    def __init__(self, names, priors):
+        assert len(names) == len(priors)
+        self.names = names
         self.priors = priors
     
-    def insert(self, x, pr):
-        """Lisää kekoon alkion x prioriteetillä pr
-        """
-        self.list.append(x)
-        self.priors.append(pr)
+    # def insert(self, x, pr):
+    #     """Lisää kekoon alkion x prioriteetillä pr
+    #     """
+    #     self.names.append(x)
+    #     self.priors.append(pr)
         
-        # Järjestele juuret alhaalta
-        parent = get_parent(len(self.list) - 1)
-        while parent != -1:
-            self.min_heapify(parent)
-            parent = get_parent(parent)
+    #     # Järjestele juuret alhaalta
+    #     parent = get_parent(len(self.names) - 1)
+    #     while parent != -1:
+    #         self.min_heapify(parent)
+    #         parent = get_parent(parent)
 
     def min_heap(self):
         """ Järjestelee minimikeon
         """
-        halfway = get_parent(len(self.list) - 1)
+        halfway = get_parent(len(self.names) - 1)
         for i in range(halfway, -1, -1):
             self.min_heapify(i)
        
@@ -79,10 +70,10 @@ class minHeap:
         right = 2 * i + 2
         smallest = i
 
-        if right < len(self.list):      # Tarkastetaan, onko oikeanpuoleista lasta
+        if right < len(self.names):      # Tarkastetaan, onko oikeanpuoleista lasta
             smallest = min(smallest, left, right, key=self.get_prior)
         
-        elif left < len(self.list):     # Tarkastetaan, onko vasemmanpuoleista lasta
+        elif left < len(self.names):     # Tarkastetaan, onko vasemmanpuoleista lasta
             smallest = min(smallest, left, key=self.get_prior)
         
         if smallest != i:
@@ -92,36 +83,35 @@ class minHeap:
     def get_prior(self, i):
         """ Palauttaa annetun indeksin alkion prioriteetin
         """
-        return self.priors[self.list[i]]
+        return self.priors[self.names[i]]
 
     def switch(self, x, y):
         """ Vaihtaa alkioiden paikkaa
         """
-        temp = self.list[x]
-        self.list[x] = self.list[y]
-        self.list[y] = temp
+        temp = self.names[x]
+        self.names[x] = self.names[y]
+        self.names[y] = temp
 
     def extract_min(self):
-        """ Poistaa ja palauttaa minimin avaimen
+        """ Poistaa ja palauttaa pienimmän alkion nimen
         """
-        assert len(self.list) > 0
+        assert len(self.names) > 0
         
-        self.switch(0, len(self.list) - 1)
-        min = self.list.pop()
+        self.switch(0, len(self.names) - 1)
+        min = self.names.pop()
         # self.priors.popitem()
         self.min_heapify(0)
 
         return min
 
-    def lower_priority(self, x, prior):
-        """ Laskee alkion prioriteettiä
+    def raise_priority(self, x, prior):
+        """ Nostaa alkion prioriteettiä / laskee reitin maksimikorkeutta.
+            Muuttaa samalla graph.height-sanakirjan arvoja
         """
-
-        for i, key in enumerate(self.list):
+        assert prior <= self.priors[x]
+        for i, key in enumerate(self.names):
             if key == x:
-                assert prior <= self.priors[key]
                 self.priors[key] = prior
-
                 # Järjestää keon uudestaan
                 parent = get_parent(i)
                 while parent != -1:
@@ -130,79 +120,57 @@ class minHeap:
 
                 break
 
-
-def get_parent(x):
+def get_parent(i):
     """ Antaa annetun indeksin vanhemman.
     """
-    assert x >= 0
-    return floor(((x + 1) / 2) - 1)
+    assert i >= 0
+    return floor(((i + 1) / 2) - 1)
 
 
 def find_route(graph, start, end):
-    """ Etsii leveyshaun avulla reitin start-nodesta end-nodeen
+    """ Etsii reitin start-solmusta end-solmuun.
     """
-
+    assert len(graph.vertices) > 1
+    assert start != end
     # Aloitetaan annetusta kaupungista
     graph.height[start] = 0
-    # Alustetaan prioriteettijono
+    # Prioriteettijono toteutettu minimikeolla
     priority_Q = minHeap(graph.vertices, graph.height) 
     priority_Q.min_heap()
     lowest = priority_Q.extract_min()
 
-    while lowest != end:
+    while lowest != end or not priority_Q:
         for edge in graph.edgeList[lowest]:
-
             # Katsotaan nouseeko reitin maksimikorkeus, kun väli kuljetaan.
             new_height = max(graph.height[lowest], edge.weight)
-                
             # Tutkitaan, onko uusi reitti matalampi
             if new_height < graph.height[edge.node]:
-                # graph.height[edge.node] = new_height
-
                 # Tallennetaan reitti kaupunkiin
                 graph.pred[edge.node] = lowest
+                # Nostetaan reitin prioriteettiä prioriteettijonossa
+                priority_Q.raise_priority(edge.node, new_height)
 
-                # Lasketaan reitin korkeutta prioriteettijonossa
-                priority_Q.lower_priority(edge.node, new_height)
-
-        # Otetaan matalin reitti jonosta         
+        # Otetaan matalin reitti jonosta
         lowest = priority_Q.extract_min()
-        
-
-def extract_min(li):
-    """Hakee listasta kaupungin, johon reitin korkeus on matalin. Palauttaa kaupungin numeron.
-    """
-    minweight = INF
-    for e in li:
-        if e.weight < minweight:
-            minweight = e.weight
-            min = e
-
-    li.remove(min)
-    return min
 
 def print_route(graph, start, end):
-    """ Tulostaa reitin start-nodesta end-nodeen. 
+    """ Tulostaa reitin start-solmusta end-solmuun. 
     """
-    # Tekee reitistä listan alkaen lopusta
-    route = []
-    node = end
-    maxHeight = -INF
-    while node != None:
-        route.append(node)
-        maxHeight = max(graph.height[node], maxHeight)
-        node = graph.pred[node]
+    if graph.pred[end] == None:
+        print("Ei ole reittiä kaupungista {} kaupunkiin {}.".format(start, end))
     
-    print("Reitti kaupungista {} kaupunkiin {}:".format(start, end))
-    for i in range(len(route) - 1, 0, -1):
-        print("{}--{}".format(route[i], route[i - 1]))
-    
-    print("Reitin suurin korkeus: {}".format(maxHeight))
-
-def print_edges(graph, x):
-    """Tulostaa reunat tietystä pisteestä
-    """
-    y = graph.edgeList[x]
-    while y != None:
-        print("EDGE:  ", x, "--", y.weight, "--", y.node)
-        y = y.next
+    else:
+        # Tekee reitistä listan alkaen lopusta
+        route = []
+        node = end
+        maxHeight = -INF
+        while node != None:
+            route.append(node)
+            maxHeight = max(graph.height[node], maxHeight)
+            node = graph.pred[node]
+        
+        print("Reitti kaupungista {} kaupunkiin {}:".format(start, end))
+        for i in range(len(route) - 1, 0, -1):
+            print("{:>5} ----> {:<5}".format(route[i], route[i - 1]))
+        
+        print("Reitin suurin korkeus: {}".format(maxHeight))
