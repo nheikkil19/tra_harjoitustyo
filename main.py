@@ -11,7 +11,7 @@ from time import perf_counter
 
 def main():
     start_time = perf_counter()
-    data = read_file("graph_large_testdata\graph_ADS2018_1000.txt")
+    data = read_file("graph_large_testdata\graph_ADS2018_2000.txt")
     data_time = perf_counter()
     G, dest = make_graph(data)
     graph_time = perf_counter()

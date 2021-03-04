@@ -24,51 +24,37 @@ class Edge:
     def __init__(self, node, weight):
         self.node = node        # mihin solmuun viivaa pitkin päästään
         self.weight = weight    # viivan paino eli tien korkeus
-        self.next = None 
 
 
 class Graph:
     def __init__(self, nV):
         self.nVert = nV
         self.edgeList = {}
-        self.vertices = []
         self.height = {}        # Kertoo matalimman reitin korkeuden kyseiseen kaupunkiin. 
         self.pred = {}          # Kertoo solmujen edeltäjän.
         self.colors = {}
+        self.vertices = []
 
         for i in range(1, self.nVert + 1):
-            self.edgeList[i] = None
-            self.vertices.append(i)
-            # Alustetaan äärettömäksi, koska etsitään matalinta.
-            self.height[i] = INF        
+            self.edgeList[i] = []
+            # Alustetaan korkeus äärettömäksi, koska etsitään matalinta.
+            self.height[i] = INF
             self.pred[i] = None
             self.colors[i] = WHITE
+            self.vertices.append(i)
 
     def add_edge(self, x, y, weight):
         """ Lisää viivan x:n ja y:n välille painolla weight
         """
         # Lisätään reitti
-        ed = self.edgeList[x]
-        if ed == None:
-            self.edgeList[x] = Edge(y, weight)
-        else:
-            while ed.next != None:
-                ed = ed.next
-            ed.next = Edge(y, weight)
+        self.edgeList[x].append(Edge(y, weight))
 
         # Lisätään myös toiseen suuntaan, koska suuntaamaton graafi.
-        ed = self.edgeList[y]
-        if ed == None:
-            self.edgeList[y] = Edge(x, weight)
-        else:
-            while ed.next != None:
-                ed = ed.next
-            ed.next = Edge(x, weight)
+        self.edgeList[y].append(Edge(x, weight))
 
 class minHeap:
-    def __init__(self):
-        self.list = []
-
+    def __init__(self, li=[]):
+        self.list = li
     
     def insert(self, x, pr):
         """Lisää kekoon alkion x prioriteetillä pr.
@@ -81,7 +67,6 @@ class minHeap:
         while parent != -1:
             self.min_heapify(parent)
             parent = get_parent(parent)
-    
 
     def min_heap(self):
         """ Järjestelee minimikeon
@@ -89,8 +74,7 @@ class minHeap:
         halfway = get_parent(len(self.list) - 1)
         for i in range(halfway, -1, -1):
             self.min_heapify(i)
-    
-    
+       
     def min_heapify(self, i):
         """ Järjestelee kekoa annetusta juuresta
         """
@@ -115,7 +99,6 @@ class minHeap:
             self.switch(i, smallest)
             self.min_heapify(smallest)
     
-
     def switch(self, x, y):
         """ Vaihtaa alkioiden paikkaa
         """
@@ -123,7 +106,6 @@ class minHeap:
         self.list[x] = self.list[y]
         self.list[y] = temp
         
-    
     def extract_min(self):
         """ Poistaa ja palauttaa minimin avaimen
         """
@@ -134,7 +116,6 @@ class minHeap:
         self.min_heapify(0)
 
         return min["key"]
-
 
     def lower_priority(self, x, prior):
         """ Laskee alkion prioriteettiä
@@ -162,25 +143,20 @@ def get_parent(x):
 def find_route(graph, start, end):
     """ Etsii leveyshaun avulla reitin start-nodesta end-nodeen
     """
-
     # Alustetaan värit valkoiseksi
     for v in graph.vertices:
         graph.colors[v] = WHITE
 
-    # Prioriteettijono perustuu listaan
+    # Alustetaan prioriteettijono
     priority_Q = minHeap() 
+
     # Aloitetaan annetusta kaupungista
     lowest = start
-    graph.height[lowest] = -INF
-
+    graph.height[lowest] = 0
     while lowest != end:
-
-        edge = graph.edgeList[lowest]
-
-        while edge != None:
+        for edge in graph.edgeList[lowest]:
             # Käydään läpi kaikki välit, joita ei olla löydetty
             if graph.colors[edge.node] != BLACK:
-                
                 # Katsotaan nouseeko reitin maksimikorkeus, kun väli kuljetaan.
                 new_height = max(graph.height[lowest], edge.weight)
                 
@@ -202,10 +178,6 @@ def find_route(graph, start, end):
                         # Merkataan kohde löydetyksi
                         graph.colors[edge.node] = GRAY
  
-            
-            # Valitaan seuraava väli
-            edge = edge.next
-
         # Merkataan kaupunki tutkituksi
         graph.colors[lowest] = BLACK   
         # Otetaan matalin reitti jonosta         
