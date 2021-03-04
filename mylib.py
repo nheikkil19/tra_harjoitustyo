@@ -53,14 +53,15 @@ class Graph:
         self.edgeList[y].append(Edge(x, weight))
 
 class minHeap:
-    def __init__(self, li=[]):
+    def __init__(self, li=[], priors=[]):
         self.list = li
+        self.priors = []
     
     def insert(self, x, pr):
-        """Lisää kekoon alkion x prioriteetillä pr.
-
+        """Lisää kekoon alkion x prioriteetillä pr
         """
-        self.list.append({"key": x, "prior": pr})
+        self.list.append(x)
+        self.priors.append(pr)
         
         # Järjestele juuret alhaalta
         parent = get_parent(len(self.list) - 1)
@@ -78,27 +79,26 @@ class minHeap:
     def min_heapify(self, i):
         """ Järjestelee kekoa annetusta juuresta
         """
+        # Solmujen indeksit
         left = 2 * i + 1
         right = 2 * i + 2
         smallest = i
 
-        if right < len(self.list):             # Tarkastetaan, onko oikeanpuoleista lasta
-            if self.list[left]["prior"] < self.list[right]["prior"]:
-                if self.list[left]["prior"] < self.list[i]["prior"]:
-                    smallest = left
-
-            else:
-                if self.list[right]["prior"] < self.list[i]["prior"]:
-                    smallest = right    
+        if right < len(self.list):      # Tarkastetaan, onko oikeanpuoleista lasta
+            smallest = min(left, right, smallest, key=self.get_prior)
         
-        elif left < len(self.list):
-            if self.list[left]["prior"] < self.list[i]["prior"]:
-                    smallest = left
+        elif left < len(self.list):     # Tarkastetaan, onko vasemmanpuoleista lasta
+            smallest = min(left, smallest, key=self.get_prior)
         
         if smallest != i:
             self.switch(i, smallest)
             self.min_heapify(smallest)
     
+    def get_prior(self, i):
+        """ Palauttaa annetun indeksin alkion prioriteetin
+        """
+        return self.priors[i]
+
     def switch(self, x, y):
         """ Vaihtaa alkioiden paikkaa
         """
@@ -106,6 +106,10 @@ class minHeap:
         self.list[x] = self.list[y]
         self.list[y] = temp
         
+        temp = self.priors[x]
+        self.priors[x] = self.priors[y]
+        self.priors[y] = temp
+
     def extract_min(self):
         """ Poistaa ja palauttaa minimin avaimen
         """
@@ -113,16 +117,19 @@ class minHeap:
         
         self.switch(0, len(self.list) - 1)
         min = self.list.pop()
+        self.priors.pop()
         self.min_heapify(0)
 
-        return min["key"]
+        return min
 
     def lower_priority(self, x, prior):
         """ Laskee alkion prioriteettiä
         """
-        for i, data in enumerate(self.list):
-            if data["key"] == x:
-                data["prior"] = prior
+
+        for i, key in enumerate(self.list):
+            if key == x:
+                assert prior <= self.priors[i]
+                self.priors[i] = prior
 
                 # Järjestää keon uudestaan
                 parent = get_parent(i)
@@ -153,6 +160,7 @@ def find_route(graph, start, end):
     # Aloitetaan annetusta kaupungista
     lowest = start
     graph.height[lowest] = 0
+
     while lowest != end:
         for edge in graph.edgeList[lowest]:
             # Käydään läpi kaikki välit, joita ei olla löydetty

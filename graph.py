@@ -40,13 +40,13 @@ def draw_graph(G):
     'node_color': 'green',
     'node_size': 400,
     'width': 2,
-    'with_labels': True
+    'with_labels': True,
+    'weight': True,
     }
 
     plt.subplot(111)
-    nx.draw_circular(G, **options)
+    nx.draw_kamada_kawai(G, **options)
     plt.show()
-
 
 def main():
     data = read_file("graafi.txt")
