@@ -15,10 +15,6 @@
 from math import floor
 
 INF = float("inf")
-WHITE = 0
-GRAY = 1
-BLACK = 2
-
 
 class Edge:
     def __init__(self, node, weight):
@@ -32,7 +28,6 @@ class Graph:
         self.edgeList = {}
         self.height = {}        # Kertoo matalimman reitin korkeuden kyseiseen kaupunkiin. 
         self.pred = {}          # Kertoo solmujen edeltäjän.
-        self.colors = {}
         self.vertices = []
 
         for i in range(1, self.nVert + 1):
@@ -40,7 +35,6 @@ class Graph:
             # Alustetaan korkeus äärettömäksi, koska etsitään matalinta.
             self.height[i] = INF
             self.pred[i] = None
-            self.colors[i] = WHITE
             self.vertices.append(i)
 
     def add_edge(self, x, y, weight):
@@ -53,9 +47,10 @@ class Graph:
         self.edgeList[y].append(Edge(x, weight))
 
 class minHeap:
-    def __init__(self, li=[], priors=[]):
+    def __init__(self, li=[], priors={}):
+        assert len(li) == len(priors)
         self.list = li
-        self.priors = []
+        self.priors = priors
     
     def insert(self, x, pr):
         """Lisää kekoon alkion x prioriteetillä pr
@@ -85,10 +80,10 @@ class minHeap:
         smallest = i
 
         if right < len(self.list):      # Tarkastetaan, onko oikeanpuoleista lasta
-            smallest = min(left, right, smallest, key=self.get_prior)
+            smallest = min(smallest, left, right, key=self.get_prior)
         
         elif left < len(self.list):     # Tarkastetaan, onko vasemmanpuoleista lasta
-            smallest = min(left, smallest, key=self.get_prior)
+            smallest = min(smallest, left, key=self.get_prior)
         
         if smallest != i:
             self.switch(i, smallest)
@@ -97,7 +92,7 @@ class minHeap:
     def get_prior(self, i):
         """ Palauttaa annetun indeksin alkion prioriteetin
         """
-        return self.priors[i]
+        return self.priors[self.list[i]]
 
     def switch(self, x, y):
         """ Vaihtaa alkioiden paikkaa
@@ -105,10 +100,6 @@ class minHeap:
         temp = self.list[x]
         self.list[x] = self.list[y]
         self.list[y] = temp
-        
-        temp = self.priors[x]
-        self.priors[x] = self.priors[y]
-        self.priors[y] = temp
 
     def extract_min(self):
         """ Poistaa ja palauttaa minimin avaimen
@@ -117,7 +108,7 @@ class minHeap:
         
         self.switch(0, len(self.list) - 1)
         min = self.list.pop()
-        self.priors.pop()
+        # self.priors.popitem()
         self.min_heapify(0)
 
         return min
@@ -128,8 +119,8 @@ class minHeap:
 
         for i, key in enumerate(self.list):
             if key == x:
-                assert prior <= self.priors[i]
-                self.priors[i] = prior
+                assert prior <= self.priors[key]
+                self.priors[key] = prior
 
                 # Järjestää keon uudestaan
                 parent = get_parent(i)
@@ -150,46 +141,32 @@ def get_parent(x):
 def find_route(graph, start, end):
     """ Etsii leveyshaun avulla reitin start-nodesta end-nodeen
     """
-    # Alustetaan värit valkoiseksi
-    for v in graph.vertices:
-        graph.colors[v] = WHITE
-
-    # Alustetaan prioriteettijono
-    priority_Q = minHeap() 
 
     # Aloitetaan annetusta kaupungista
-    lowest = start
-    graph.height[lowest] = 0
+    graph.height[start] = 0
+    # Alustetaan prioriteettijono
+    priority_Q = minHeap(graph.vertices, graph.height) 
+    priority_Q.min_heap()
+    lowest = priority_Q.extract_min()
 
     while lowest != end:
         for edge in graph.edgeList[lowest]:
-            # Käydään läpi kaikki välit, joita ei olla löydetty
-            if graph.colors[edge.node] != BLACK:
-                # Katsotaan nouseeko reitin maksimikorkeus, kun väli kuljetaan.
-                new_height = max(graph.height[lowest], edge.weight)
+
+            # Katsotaan nouseeko reitin maksimikorkeus, kun väli kuljetaan.
+            new_height = max(graph.height[lowest], edge.weight)
                 
-                # Tutkitaan, onko uusi reitti matalampi
-                if new_height < graph.height[edge.node]:
-                    graph.height[edge.node] = new_height
+            # Tutkitaan, onko uusi reitti matalampi
+            if new_height < graph.height[edge.node]:
+                # graph.height[edge.node] = new_height
 
-                    # Tallennetaan reitti kaupunkiin
-                    graph.pred[edge.node] = lowest
+                # Tallennetaan reitti kaupunkiin
+                graph.pred[edge.node] = lowest
 
-                    if graph.colors[edge.node] == GRAY:
-                        # Lasketaan reitin korkeutta prioriteettijonossa
-                        priority_Q.lower_priority(edge.node, new_height)
-                    
-                    else:
-                        # Lisätään kohdekaupunki tutkittavien listaan
-                        priority_Q.insert(edge.node, graph.height[edge.node])
-                        # priority_Q.append(edge.node)
-                        # Merkataan kohde löydetyksi
-                        graph.colors[edge.node] = GRAY
- 
-        # Merkataan kaupunki tutkituksi
-        graph.colors[lowest] = BLACK   
+                # Lasketaan reitin korkeutta prioriteettijonossa
+                priority_Q.lower_priority(edge.node, new_height)
+
         # Otetaan matalin reitti jonosta         
-        lowest = priority_Q.extract_min()      
+        lowest = priority_Q.extract_min()
         
 
 def extract_min(li):

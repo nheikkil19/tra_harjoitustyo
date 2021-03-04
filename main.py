@@ -12,12 +12,13 @@ from time import perf_counter
 def main():
     start_time = perf_counter()
     data = read_file("graph_large_testdata/graph_ADS2018_2000.txt")
+    # data = read_file("graafi.txt")
     data_time = perf_counter()
     G, dest = make_graph(data)
     graph_time = perf_counter()
     find_route(G, 1, dest)
     route_time = perf_counter()
-    # print_route(G, 1, dest)
+    print_route(G, 1, dest)
 
     print("Data time: {:6f} seconds".format(data_time - start_time))
     print("Grph time: {:6f} seconds".format(graph_time - data_time))
