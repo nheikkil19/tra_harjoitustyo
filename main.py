@@ -1,16 +1,22 @@
 # TIETORAKENTEET JA ALGORITMIT -KURSSIN HARJOITUSTYÖ 2020
 # Niko Heikkilä     ***REMOVED*** 
-# 
 
 from mylib import *
 from time import perf_counter
 import sys
-def main(file):
-    # filename = sys.argv[1]
-    # G, dest = read_graph(filename)
-    G, dest = read_graph("graph_large_testdata/graph_ADS2018_{}.txt".format(file))
-    # G, dest = read_graph("graph_testdata/graph_ADS2018_10_2.txt")
-    # G, dest = read_graph("graafi.txt")
+
+def main():
+    if len(sys.argv) > 1:
+        filename = sys.argv[1]
+    else:
+        filename = input("Give filename: ")
+    
+    try:
+        G, dest = read_graph(filename)
+    except FileNotFoundError:
+        print("File not found!")
+        quit()
+
     find_route(G, 1, dest)
     print_route(G, 1, dest)
 
@@ -37,9 +43,7 @@ def read_graph(filename):
 
 if __name__ == "__main__":
 
-    for i in [200, 300, 500, 750, 1000, 1500, 2000]:
-        print("\n", i)
-        start = perf_counter()
-        main(i)
-        end = perf_counter()
-        print("Execution time: {:6f} seconds".format(end - start))
+    # start = perf_counter()
+    main()
+    # end = perf_counter()
+    # print("Execution time: {:6f} seconds".format(end - start))
