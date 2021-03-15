@@ -83,7 +83,6 @@ class minHeap:
         
         self.switch(0, len(self.names) - 1)
         min = self.names.pop()
-        # self.priors.popitem()
         self.min_heapify(0)
 
         return min

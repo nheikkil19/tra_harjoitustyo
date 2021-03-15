@@ -20,6 +20,7 @@ def main():
     find_route(G, 1, dest)
     print_route(G, 1, dest)
 
+
 def read_graph(filename):
     """ Lukee tiedoston ja tekee siitä graafin. Palauttaa graafin ja kohdekaupungin
     """
