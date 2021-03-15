@@ -1,9 +1,5 @@
 # Kirjasto harjoitustyön funktioille
 
-# TODO:
-# ASSERTIT
-# KIRJOTTAA ANALYYSI
-# PARANTAA REITIN TULOSTUSTA
 
 from math import floor
 
@@ -42,18 +38,6 @@ class minHeap:
         assert len(names) == len(priors)
         self.names = names
         self.priors = priors
-    
-    # def insert(self, x, pr):
-    #     """Lisää kekoon alkion x prioriteetillä pr
-    #     """
-    #     self.names.append(x)
-    #     self.priors.append(pr)
-        
-    #     # Järjestele juuret alhaalta
-    #     parent = get_parent(len(self.names) - 1)
-    #     while parent != -1:
-    #         self.min_heapify(parent)
-    #         parent = get_parent(parent)
 
     def min_heap(self):
         """ Järjestelee minimikeon
