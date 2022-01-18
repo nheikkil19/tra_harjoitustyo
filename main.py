@@ -1,5 +1,5 @@
 # TIETORAKENTEET JA ALGORITMIT -KURSSIN HARJOITUSTYÖ 2020
-# Niko Heikkilä     ***REMOVED*** 
+# Niko Heikkilä      
 
 from mylib import *
 from time import perf_counter
