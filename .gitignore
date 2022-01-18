@@ -1,0 +1,5 @@
+.vscode
+__pycache__
+debug.log
+graph_large_testdata
+graph_testdata
